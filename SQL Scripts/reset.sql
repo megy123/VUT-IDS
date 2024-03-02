@@ -1,0 +1,9 @@
+DROP TABLE Dealer;
+DROP TABLE Jailer;
+DROP TABLE Customer;
+DROP TABLE Order;
+DROP TABLE Pastry;
+DROP TABLE Ingredient;
+DROP TABLE Jail;
+DROP TABLE Shift;
+DROP TABLE Delivery_zone;
