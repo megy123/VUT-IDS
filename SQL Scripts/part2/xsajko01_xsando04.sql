@@ -1,6 +1,16 @@
-/*Tento scrpit blah blah blah*/
+/*
+File:       xsajko01_xsando04.sql
+Authors:    Dominik Sajko (xsajko01), Daniela Sándorová (xsando04)
+Date:       xx.03.2024
+Descrition: This script initializes the database and uploads data.
+*/
 
-/*Tabulky z ER diagramu*/
+-- ER DIAGRAM TABLES
+
+/*
+The generalization relationship was broken down into separate tables according to the 4th IDS 
+presentation (option 2), because it minimizes the complexity of the database.
+*/
 CREATE TABLE Dealer (
     dealer_id INT not null,
     name VARCHAR(64) not null,
@@ -32,6 +42,7 @@ CREATE TABLE Customer (
 CREATE TABLE Item_order (
     order_id INT not null,
     customer_id INT not null,
+    first_pastry_EAN INT not null,
     price FLOAT(2) not null,
     delivery_type VARCHAR(256) not null,
     delivery_date DATE,
@@ -41,7 +52,7 @@ CREATE TABLE Item_order (
 CREATE TABLE Pastry (
     EAN INT not null,
     order_id INT not null,
-    weight INT not null,/*v gramoch*/
+    weight INT not null, -- in grams
     pastry_type VARCHAR(256) not null,
     CONSTRAINT pastry_pk PRIMARY KEY (EAN)
 );
@@ -60,6 +71,7 @@ CREATE TABLE Allergen (
 
 CREATE TABLE Jail (
     jail_id INT not null,
+    first_shift_id INT not null,
     delivery_zone_id INT not null,
     address VARCHAR(256) not null,
     CONSTRAINT jail_id PRIMARY KEY (jail_id)
@@ -85,7 +97,8 @@ CREATE TABLE Backed_item (
     CONSTRAINT backed_item_pk PRIMARY KEY (backed_item_id)
 );
 
-/*Pomocne tabulky pre MN relacie*/
+-- ASSOCIATIVE TABLES
+
 CREATE TABLE Dealer_Jailer (
     dealer_id INT not null,
     jailer_id INT not null
@@ -111,26 +124,40 @@ CREATE TABLE Ingredient_Allergern (
     allergen_name VARCHAR(32) not null
 );
 
-/*Set foreign keys*/
+-- FOREIGN KEY SET UP
+
+-- ER tables
 ALTER TABLE Jailer ADD CONSTRAINT Jjail_fk FOREIGN KEY (jail_id) REFERENCES Jail(jail_id);
 ALTER TABLE Customer ADD CONSTRAINT Cjail_fk FOREIGN KEY (jail_id) REFERENCES Jail(jail_id);
 ALTER TABLE Item_order ADD CONSTRAINT customer_fk FOREIGN KEY (customer_id) REFERENCES Customer(customer_id);
-ALTER TABLE Pastry ADD CONSTRAINT Porder_fk FOREIGN KEY (order_id) REFERENCES Item_order(order_id);
+ALTER TABLE Pastry ADD CONSTRAINT Porder_fk FOREIGN KEY (order_id) REFERENCES Item_order(order_id) UNIQUE (order_id, EAN);
+ALTER TABLE Item_order ADD CONSTRAINT first_pastry_EAN FOREIGN KEY (order_id, first_pastry_EAN) REFERENCES Pastry(order_id, EAN);/* 1..* */
 ALTER TABLE Jail ADD CONSTRAINT delivery_zone_fk FOREIGN KEY (delivery_zone_id) REFERENCES Delivery_zone(delivery_zone_id);
-ALTER TABLE Shift ADD CONSTRAINT Sjail_fk FOREIGN KEY (jail_id) REFERENCES Jail(jail_id);
+ALTER TABLE Shift ADD CONSTRAINT Sjail_fk FOREIGN KEY (jail_id) REFERENCES Jail(jail_id) UNIQUE (jail_id, shift_id);
+ALTER TABLE Jail ADD CONSTRAINT first_shift_fk FOREIGN KEY (jail_id, first_shift_id) REFERENCES Shift(jail_id, shift_id);/* 1..* */
 ALTER TABLE Delivery_zone ADD CONSTRAINT dealer_fk FOREIGN KEY (dealer_id) REFERENCES Dealer(dealer_id);
 
+--
 ALTER TABLE Dealer_Jailer ADD CONSTRAINT DJdealer_fk FOREIGN KEY (dealer_id) REFERENCES Dealer(dealer_id);
 ALTER TABLE Dealer_Jailer ADD CONSTRAINT DJjailer_fk FOREIGN KEY (jailer_id) REFERENCES Jailer(jailer_id);
 
+--
 ALTER TABLE Jailer_Shift ADD CONSTRAINT JSjailer_fk FOREIGN KEY (jailer_id) REFERENCES Jailer(jailer_id);
 ALTER TABLE Jailer_Shift ADD CONSTRAINT JSshift_fk FOREIGN KEY (shift_id) REFERENCES Shift(shift_id);
 
+--
 ALTER TABLE Backed_item_Pastry ADD CONSTRAINT BPbacked_item_fk FOREIGN KEY (backed_item_id) REFERENCES Backed_item(backed_item_id);
 ALTER TABLE Backed_item_Pastry ADD CONSTRAINT BPEAN_fk FOREIGN KEY (EAN) REFERENCES Pastry(EAN);
 
+--
 ALTER TABLE Ingredient_Pastry ADD CONSTRAINT IPingredient_fk FOREIGN KEY (ingredient_id) REFERENCES Ingredient(ingredient_id);
 ALTER TABLE Ingredient_Pastry ADD CONSTRAINT IPEAN_fk FOREIGN KEY (EAN) REFERENCES Pastry(EAN);
 
+--
 ALTER TABLE Ingredient_Allergern ADD CONSTRAINT IAingredient_fk FOREIGN KEY (ingredient_id) REFERENCES Ingredient(ingredient_id);
 ALTER TABLE Ingredient_Allergern ADD CONSTRAINT IAallergen_name_fk FOREIGN KEY (allergen_name) REFERENCES Allergen(allergen_name);
+
+-- INSERT DATA TO database
+
+--tu bude Danka kúzliť
+--čáry máry
