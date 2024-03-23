@@ -1,7 +1,7 @@
 /*
 File:       xsajko01_xsando04.sql
 Authors:    Dominik Sajko (xsajko01), Daniela Sándorová (xsando04)
-Date:       xx.03.2024
+Date:       23.03.2024
 Description: This script initializes the database and uploads data.
 */
 
