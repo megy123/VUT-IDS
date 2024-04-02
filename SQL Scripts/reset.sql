@@ -6,9 +6,11 @@ DROP TABLE Dealer_Jailer;
 DROP TABLE Jailer_Shift;
 DROP TABLE Ingredient_Allergen;
 
+
 DROP TABLE Item_order;
 DROP TABLE Pastry;
 DROP TABLE Ingredient;
+DROP TABLE Backed_item;
 
 DROP TABLE Shift;
 DROP TABLE Jailer;
