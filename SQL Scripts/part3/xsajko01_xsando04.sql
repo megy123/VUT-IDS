@@ -232,8 +232,6 @@ VALUES (102,'Martin','Beluský',TO_DATE('1987-04-17', 'YYYY-MM-DD'));
 -- Delivery Zones
 INSERT INTO Delivery_zone (delivery_zone_id, dealer_id)
 VALUES (201,101);
-INSERT INTO Delivery_zone (delivery_zone_id, dealer_id)
-VALUES (202,102);
 
 -- Jail
 INSERT INTO Jail (jail_id, delivery_zone_id, address)
@@ -263,7 +261,8 @@ VALUES (401, 301);
 -- Customers
 INSERT INTO Customer (customer_id,jail_id, first_name, surname, birth_date, cell_number, cell_type)
 VALUES (501,1,'Peter', 'Pellegrini',TO_DATE('1975-10-06', 'YYYY-MM-DD'),1,'solitary');
-COMMIT;
+INSERT INTO Customer (customer_id,jail_id, first_name, surname, birth_date, cell_number, cell_type)
+VALUES (503,1,'Denisa', 'Sakova',TO_DATE('1976-04-17', 'YYYY-MM-DD'),3,'solitary');
 INSERT INTO Customer (customer_id,jail_id, first_name, surname, birth_date, cell_number, cell_type)
 VALUES (502,1,'Matúš', 'Šutaj Eštok',TO_DATE('1987-02-04', 'YYYY-MM-DD'),2,'double');
 
@@ -301,3 +300,33 @@ INSERT INTO Backed_item_Pastry (backed_item_id, EAN)
 VALUES (1, 123456789);
 
 COMMIT;
+
+-- customer is looking for a pastry with their favorite ingredient (joining two tables)
+SELECT p.name as ingredient_name FROM Pastry p  JOIN Ingredient i on p.first_ingredient = i.ingredient_id
+WHERE i.name = 'whole-wheat flour';
+
+-- dealer checking the address of a customer they're delivering to
+SELECT address as jail_address from Customer c JOIN Jail j on c.jail_id = j.jail_id
+WHERE c.surname = 'Pellegrini';
+
+-- customer is checking if their favorite pastry contains any allergens (joining four tables - instead of three as in the assignment)
+SELECT DISTINCT A.allergen_name as allergen FROM Allergen A JOIN Ingredient_Allergen IA ON A.allergen_name = IA.allergen_name JOIN Ingredient_Pastry IP ON IA.ingredient_id = IP.ingredient_id JOIN Pastry P ON IP.EAN = P.EAN
+WHERE P.name = 'bread';
+
+-- dealer was proposed to deliver to a new zone - they are checking what type of cells are in the
+SELECT J.address as address, c.cell_type, COUNT(*) as count FROM  Customer c JOIN Jail J on c.jail_id = J.jail_id JOIN Delivery_zone Dz on J.delivery_zone_id = Dz.delivery_zone_id JOIN Dealer D on Dz.dealer_id = D.dealer_id
+WHERE Dz.delivery_zone_id = 201
+GROUP BY c.cell_type, J.address;
+
+-- jailer wants to know his oldest customer's birthdate
+SELECT DISTINCT max(C.birth_date) as oldest_customer FROM Customer C JOIN Jail J on C.jail_id = J.jail_id JOIN Jailer J2 on J.jail_id = J2.jail_id
+GROUP BY J2.jailer_id HAVING J2.jailer_id = 401;
+
+-- jailer checks which dealer delivers to a specific customer
+SELECT DISTINCT D.first_name, D.surname FROM Dealer D JOIN Delivery_zone Dz on D.dealer_id = Dz.dealer_id JOIN Jail J on Dz.delivery_zone_id = J.delivery_zone_id JOIN Jailer J2 on J.jail_id = J2.jail_id JOIN Customer C2 on J.jail_id = C2.jail_id
+WHERE EXISTS( SELECT C.customer_id FROM Customer C JOIN Jail J3 on C.jail_id = J3.jail_id JOIN Jailer J4 on J3.jail_id = J4.jail_id
+                         WHERE C.customer_id = '501' AND J4.jailer_id = 401);
+
+-- dealer wants to know which customers are in solitary
+SELECT C.first_name, C.surname FROM Customer C
+WHERE C.customer_id IN (SELECT C1.customer_id FROM Customer C1 WHERE C1.cell_type = 'solitary');
