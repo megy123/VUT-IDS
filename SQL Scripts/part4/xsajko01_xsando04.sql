@@ -405,31 +405,41 @@ SELECT CURRENT_DATE FROM dual;
 SELECT * FROM Item_order;--this should be empty
 
 --assigns shifts for a day to jailers
-/*
 CREATE OR REPLACE PROCEDURE auto_assign_shift
 IS
 BEGIN
     DECLARE CURSOR auto_assign_shift_cursor IS
             SELECT jail_id FROM Jail;
             v_jail_id  Jail.jail_id%TYPE;
+            v_count number;
+            id_counter integer := 85;
     BEGIN
         OPEN auto_assign_shift_cursor;
         LOOP
             FETCH auto_assign_shift_cursor INTO v_jail_id;
         EXIT WHEN auto_assign_shift_cursor%NOTFOUND;
-            IF (SELECT COUNT(*) FROM Shift WHERE 
+            SELECT COUNT(*) INTO v_count FROM Shift WHERE 
                 jail_id = v_jail_id AND 
-                SYSTIMESTAMP BETWEEN start_time AND end_time) <= 0
+                SYSTIMESTAMP BETWEEN start_time AND end_time;
+            IF
+                v_count <= 0
             THEN
-                --INSERT INTO Shift (shift_id, jail_id, start_time, end_time)
-                --    VALUES (55, v_jail_id, ) 
+                INSERT INTO Shift (shift_id, jail_id, start_time, end_time)
+                    VALUES (id_counter, v_jail_id, TO_TIMESTAMP('2024-03-20 08:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP('2024-03-20 16:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+                    id_counter := id_counter + 1;
             END IF;
         END LOOP;
         CLOSE auto_assign_shift_cursor;
     END;
 END auto_assign_shift;
 /
-*/
+--execute procedure
+begin 
+    auto_assign_shift;
+end;
+/
+SELECT * FROM Shift;
+
 /*GRANT ALL PRIVILEGES TO user2;
 
 CREATE MATERIALIZED VIEW user_view
