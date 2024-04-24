@@ -372,7 +372,64 @@ INSERT INTO Jail (jail_id, delivery_zone_id, address)
 VALUES (5, 201, 'Purkyňova 93 Brno, Česko');
 SELECT * FROM Jailer WHERE jail_id = 5;
 
+--checks orders and deletes orders that were already delivered
+CREATE OR REPLACE PROCEDURE remove_outdated_orders
+IS
+    table_does_not_exist EXCEPTION;
+    PRAGMA EXCEPTION_INIT(table_does_not_exist, -00942);
+BEGIN
+    DECLARE CURSOR outdated_order_delete IS
+            SELECT delivery_date FROM Item_order;
+            v_deli_date  Item_order.delivery_date%TYPE;
+    BEGIN
+        OPEN outdated_order_delete;
+        LOOP
+            FETCH outdated_order_delete INTO v_deli_date;
+        EXIT WHEN outdated_order_delete%NOTFOUND;
+            DELETE FROM Item_order WHERE v_deli_date < CURRENT_DATE;
+        END LOOP;
+        CLOSE outdated_order_delete;
+    EXCEPTION
+        WHEN table_does_not_exist THEN
+            dbms_output.put_line('\"Item_order\" table does not exists!');
+    END;
+END remove_outdated_orders;
+/
+--execute procedure
+begin 
+    remove_outdated_orders;
+end;
+/
+--check results
+SELECT CURRENT_DATE FROM dual;
+SELECT * FROM Item_order;--this should be empty
 
+--assigns shifts for a day to jailers
+/*
+CREATE OR REPLACE PROCEDURE auto_assign_shift
+IS
+BEGIN
+    DECLARE CURSOR auto_assign_shift_cursor IS
+            SELECT jail_id FROM Jail;
+            v_jail_id  Jail.jail_id%TYPE;
+    BEGIN
+        OPEN auto_assign_shift_cursor;
+        LOOP
+            FETCH auto_assign_shift_cursor INTO v_jail_id;
+        EXIT WHEN auto_assign_shift_cursor%NOTFOUND;
+            IF (SELECT COUNT(*) FROM Shift WHERE 
+                jail_id = v_jail_id AND 
+                SYSTIMESTAMP BETWEEN start_time AND end_time) <= 0
+            THEN
+                --INSERT INTO Shift (shift_id, jail_id, start_time, end_time)
+                --    VALUES (55, v_jail_id, ) 
+            END IF;
+        END LOOP;
+        CLOSE auto_assign_shift_cursor;
+    END;
+END auto_assign_shift;
+/
+*/
 /*GRANT ALL PRIVILEGES TO user2;
 
 CREATE MATERIALIZED VIEW user_view
