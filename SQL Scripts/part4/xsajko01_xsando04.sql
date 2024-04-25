@@ -400,9 +400,9 @@ begin
     remove_outdated_orders;
 end;
 /
---check results
+--display results
 SELECT CURRENT_DATE FROM dual;
-SELECT * FROM Item_order;--this should be empty
+SELECT * FROM Item_order;--this should be empty with current inputs
 
 --assigns shifts for a day to jailers
 CREATE OR REPLACE PROCEDURE auto_assign_shift
@@ -412,7 +412,8 @@ BEGIN
             SELECT jail_id FROM Jail;
             v_jail_id  Jail.jail_id%TYPE;
             v_count number;
-            id_counter integer := 85;
+            id_counter number;
+            v_selected_jailer_id number;
     BEGIN
         OPEN auto_assign_shift_cursor;
         LOOP
@@ -424,9 +425,15 @@ BEGIN
             IF
                 v_count <= 0
             THEN
+                SELECT MAX(SHIFT_ID) INTO id_counter FROM Shift;
+                id_counter := id_counter + 1;
+
                 INSERT INTO Shift (shift_id, jail_id, start_time, end_time)
-                    VALUES (id_counter, v_jail_id, TO_TIMESTAMP('2024-03-20 08:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP('2024-03-20 16:00:00', 'YYYY-MM-DD HH24:MI:SS'));
-                    id_counter := id_counter + 1;
+                    VALUES (id_counter, v_jail_id, CAST(TRUNC(CURRENT_DATE) AS TIMESTAMP) + interval '8' hour,
+                                                   CAST(TRUNC(CURRENT_DATE) AS TIMESTAMP) + interval '20' hour);
+                SELECT jailer_id INTO v_selected_jailer_id FROM jailer WHERE jail_id = v_jail_id FETCH FIRST 1 ROW ONLY;
+                INSERT INTO Jailer_Shift (jailer_id, shift_id)
+                    VALUES (v_selected_jailer_id, id_counter);
             END IF;
         END LOOP;
         CLOSE auto_assign_shift_cursor;
@@ -438,7 +445,9 @@ begin
     auto_assign_shift;
 end;
 /
-SELECT * FROM Shift;
+--display results
+SELECT * FROM Shift NATURAL JOIN Jailer_Shift NATURAL JOIN Jailer;
+
 
 /*GRANT ALL PRIVILEGES TO user2;
 
