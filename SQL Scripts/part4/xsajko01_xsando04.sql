@@ -345,8 +345,8 @@ WHERE C.customer_id IN (SELECT C1.customer_id FROM Customer C1 WHERE C1.cell_typ
 
 --PART 4
 
---TODO: Danka skontroluj tu grammatiku plz
---add jailer to jailer log what logs all jailers ever
+-- TRIGGERS
+--add jailer to "Jailer Log", which logs all jailers in the database
 CREATE OR REPLACE TRIGGER LogTrigger
     AFTER INSERT ON Customer
     FOR EACH ROW
@@ -372,6 +372,7 @@ INSERT INTO Jail (jail_id, delivery_zone_id, address)
 VALUES (5, 201, 'Purkyňova 93 Brno, Česko');
 SELECT * FROM Jailer WHERE jail_id = 5;
 
+-- PROCEDURES
 --checks orders and deletes orders that were already delivered
 CREATE OR REPLACE PROCEDURE remove_outdated_orders
 IS
@@ -448,13 +449,57 @@ end;
 --display results
 SELECT * FROM Shift NATURAL JOIN Jailer_Shift NATURAL JOIN Jailer;
 
+-- INDEX
+--CREATE INDEX idx_item_order_price ON Item_order(price);
+SELECT order_id, price
+FROM Item_order
+WHERE price BETWEEN 10 AND 50;
 
-/*GRANT ALL PRIVILEGES TO user2;
+-- EXPLAIN PLAN
 
-CREATE MATERIALIZED VIEW user_view
-    REFRESH FAST AS
-    SELECT first_name, surname, birth_date FROM Customer;*/
+-- proposed optimalization
+--CREATE INDEX idx_customers_customer_id ON Customer(customer_id);
+--CREATE INDEX idx_orders_customer_id ON Item_order(customer_id);
 
+EXPLAIN PLAN FOR
+SELECT c.customer_id, c.surname, COUNT(o.order_id) AS order_count
+FROM Customer c
+JOIN Item_order o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.surname;
+-- DataGrip view
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+-- PRIVILEGES
+GRANT ALL ON ALLERGEN TO XSAJKO01;
+GRANT ALL ON BACKED_ITEM TO XSAJKO01;
+GRANT ALL ON BACKED_ITEM_PASTRY TO XSAJKO01;
+GRANT ALL ON CUSTOMER TO XSAJKO01;
+GRANT ALL ON CUSTOMER_LOG TO XSAJKO01;
+GRANT ALL ON DEALER TO XSAJKO01;
+GRANT ALL ON DEALER_JAILER TO XSAJKO01;
+GRANT ALL ON DELIVERY_ZONE TO XSAJKO01;
+GRANT ALL ON INGREDIENT TO XSAJKO01;
+GRANT ALL ON INGREDIENT_ALLERGEN TO XSAJKO01;
+GRANT ALL ON INGREDIENT_PASTRY TO XSAJKO01;
+GRANT ALL ON ITEM_ORDER TO XSAJKO01;
+GRANT ALL ON JAIL TO XSAJKO01;
+GRANT ALL ON JAILER TO XSAJKO01;
+GRANT ALL ON JAILER_SHIFT TO XSAJKO01;
+GRANT ALL ON PASTRY TO XSAJKO01;
+GRANT ALL ON SHIFT TO XSAJKO01;
+
+-- MATERIALIZED VIEW FOR MEGY
+CREATE MATERIALIZED VIEW customer_order_summary
+AS
+SELECT c.customer_id, c.surname, COUNT(o.order_id) AS order_count
+FROM Customer c
+JOIN Item_order o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.surname;
+
+-- megy would execute this
+-- SELECT * FROM megy_view;
+
+-- COMPLEX SELECT
 -- print order_id and price category (<10<50<)
 SELECT Item_order.order_id, 
        (CASE WHEN EXISTS (SELECT * FROM Item_order WHERE Item_order.price < 10) THEN 'LOW'
