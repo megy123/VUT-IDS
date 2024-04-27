@@ -489,7 +489,7 @@ GRANT ALL ON PASTRY TO XSAJKO01;
 GRANT ALL ON SHIFT TO XSAJKO01;
 
 -- MATERIALIZED VIEW FOR MEGY
-CREATE MATERIALIZED VIEW customer_order_summary
+CREATE MATERIALIZED VIEW megy_view
 AS
 SELECT c.customer_id, c.surname, COUNT(o.order_id) AS order_count
 FROM Customer c
