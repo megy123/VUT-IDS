@@ -46,6 +46,8 @@ DROP TABLE Jail;
 DROP TABLE Delivery_zone;
 DROP TABLE Dealer;
 
+DROP TABLE CUSTOMER_LOG;
+
 
 
 
