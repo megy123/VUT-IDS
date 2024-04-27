@@ -48,6 +48,9 @@ DROP TABLE Dealer;
 
 DROP TABLE CUSTOMER_LOG;
 
+-- Drop the materialized view
+DROP MATERIALIZED VIEW megy_view;
+
 
 
 
