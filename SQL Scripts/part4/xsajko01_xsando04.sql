@@ -501,9 +501,15 @@ GROUP BY c.customer_id, c.surname;
 
 -- COMPLEX SELECT
 -- print order_id and price category (<10<50<)
+INSERT INTO Item_order (order_id, customer_id, first_pastry_EAN, price, delivery_type, delivery_date)
+VALUES (10, 501, 123456789, 5.99, 'express', TO_DATE('2024-08-15', 'YYYY-MM-DD'));
+INSERT INTO Item_order (order_id, customer_id, first_pastry_EAN, price, delivery_type, delivery_date)
+VALUES (11, 501, 123456789, 25.45, 'express', TO_DATE('2024-09-20', 'YYYY-MM-DD'));
+INSERT INTO Item_order (order_id, customer_id, first_pastry_EAN, price, delivery_type, delivery_date)
+VALUES (12, 501, 123456789, 156.12, 'express', TO_DATE('2024-09-03', 'YYYY-MM-DD'));
 SELECT Item_order.order_id, 
-       (CASE WHEN EXISTS (SELECT * FROM Item_order WHERE Item_order.price < 10) THEN 'LOW'
-             WHEN EXISTS (SELECT * FROM Item_order WHERE Item_order.price > 50) THEN 'HIGH'
+       (CASE WHEN EXISTS (SELECT * FROM Item_order IOT WHERE Item_order.price < 10 AND Item_order.order_id = IOT.order_id) THEN 'LOW'
+             WHEN EXISTS (SELECT * FROM Item_order IOT WHERE Item_order.price > 50 AND Item_order.order_id = IOT.order_id) THEN 'HIGH'
              ELSE 'MEDIUM'
         END) AS price_category
     FROM Item_order;
